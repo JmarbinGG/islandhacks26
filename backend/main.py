@@ -1,12 +1,22 @@
+import os
 import uuid
 from typing import Optional
 
 import bcrypt
-from fastapi import FastAPI, HTTPException
+from dotenv import load_dotenv
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import create_engine, or_, Column, Integer, String
 from sqlalchemy.orm import declarative_base, sessionmaker
+
+load_dotenv()
+
+from ai.factory import get_classifier
+
+UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 DATABASE_URL = "sqlite:///./listings.db"
 
@@ -401,6 +411,32 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+
+
+@app.post("/api/analyze")
+async def analyze_image(image: UploadFile = File(...)):
+    """Run the configured AI backend (see ai/factory.py) over an uploaded
+    photo and return suggested listing fields for the user to review/edit
+    before calling /api/upload."""
+    contents = await image.read()
+
+    ext = os.path.splitext(image.filename or "")[1] or ".jpg"
+    filename = f"{uuid.uuid4()}{ext}"
+    with open(os.path.join(UPLOAD_DIR, filename), "wb") as f:
+        f.write(contents)
+
+    result = get_classifier().analyze(contents)
+
+    return {
+        "name": result.name,
+        "category": result.category,
+        "tags": ",".join(result.tags),
+        "quantity": result.quantity,
+        "confidence": result.confidence,
+        "image_url": f"/uploads/{filename}",
+    }
 
 
 # Synonym groups: searching any term in a group also matches the rest of the group.

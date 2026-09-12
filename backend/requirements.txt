@@ -4,3 +4,6 @@ sqlalchemy
 pydantic
 bcrypt
 email-validator
+python-multipart
+requests
+python-dotenv
