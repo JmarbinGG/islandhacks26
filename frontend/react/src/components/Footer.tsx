@@ -7,15 +7,17 @@ import { Link } from 'react-router-dom'
 export default function Footer() {
   return (
     <footer className="site-footer">
-      <div>
-        <strong>byproduct.</strong>
-        <p>Turning byproducts into opportunities.</p>
-      </div>
+      <div className="footer-inner">
+        <div>
+          <strong>byproduct.</strong>
+          <p>Turning byproducts into opportunities.</p>
+        </div>
 
-      <nav className="footer-links">
-        <Link to="/about">About Us</Link>
-        <a href="mailto:hello@byproduct.app">Contact</a>
-      </nav>
+        <nav className="footer-links">
+          <Link to="/about">About Us</Link>
+          <a href="mailto:hello@byproduct.app">Contact</a>
+        </nav>
+      </div>
 
       <p className="footer-copy">Built at IslandHacks 2026.</p>
     </footer>

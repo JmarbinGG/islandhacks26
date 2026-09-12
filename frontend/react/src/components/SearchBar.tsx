@@ -8,7 +8,7 @@ type Props = {
 }
 
 /**
- * Search input + Search + Browse, all pill-shaped on one line. Search
+ * Search input + Search (primary) + Browse (secondary), on one line. Search
  * submits the typed query; Browse jumps straight to all listings.
  */
 export default function SearchBar({ initialQuery = '', size = 'small' }: Props) {
@@ -35,7 +35,7 @@ export default function SearchBar({ initialQuery = '', size = 'small' }: Props) 
           Search
         </button>
       </form>
-      <Link to="/search" className="primary-button">
+      <Link to="/search" className="secondary-button">
         Browse
       </Link>
     </div>

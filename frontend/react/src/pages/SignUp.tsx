@@ -17,7 +17,7 @@ export default function SignUp() {
     setSubmitting(true)
     try {
       await signup(name, email, password)
-      navigate('/')
+      navigate('/app')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
     } finally {

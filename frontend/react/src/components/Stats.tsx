@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { ErrorState, Loading } from './States'
 import type { Listing } from '../types'
 
@@ -23,28 +24,22 @@ export default function Stats({ listings, loading, error }: Props) {
   return (
     <section className="stats-panel">
       <h2>Marketplace Stats</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Metric</th>
-            <th>Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Total listings</td>
-            <td>{rows.length}</td>
-          </tr>
-          <tr>
-            <td>Available now</td>
-            <td>{available}</td>
-          </tr>
-          <tr>
-            <td>Categories</td>
-            <td>{categories}</td>
-          </tr>
-        </tbody>
-      </table>
+      {/* Each stat links to /search - the one place in the app where that
+          number can actually be explored further. */}
+      <div className="stat-cards">
+        <Link to="/search" className="stat-card">
+          <span className="stat-value">{rows.length}</span>
+          <span className="stat-label">Total listings</span>
+        </Link>
+        <Link to="/search" className="stat-card">
+          <span className="stat-value">{available}</span>
+          <span className="stat-label">Available now</span>
+        </Link>
+        <Link to="/search" className="stat-card">
+          <span className="stat-value">{categories}</span>
+          <span className="stat-label">Categories</span>
+        </Link>
+      </div>
     </section>
   )
 }

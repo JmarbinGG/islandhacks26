@@ -9,34 +9,36 @@ export default function Navbar() {
 
   function handleSignOut() {
     logout()
-    navigate('/')
+    navigate('/app')
   }
 
   return (
     <header className="navbar">
-      <Link to="/" className="logo">
-        <img src={logo} alt="byproduct." className="logo-mark" />
-        <span className="logo-period">.</span>
-      </Link>
+      <div className="navbar-inner">
+        <Link to="/app" className="logo">
+          <img src={logo} alt="byproduct." className="logo-mark" />
+          <span className="logo-period">.</span>
+        </Link>
 
-      <nav className="nav-links">
-        <Link to="/about">About Us</Link>
-        {user ? (
-          <>
-            <span className="nav-greeting">Hi, {user.name}</span>
-            <button type="button" className="link-button" onClick={handleSignOut}>
-              Sign Out
-            </button>
-          </>
-        ) : (
-          <>
-            <Link to="/signin">Sign In</Link>
-            <Link to="/signup" className="primary-button">
-              Sign Up
-            </Link>
-          </>
-        )}
-      </nav>
+        <nav className="nav-links">
+          <Link to="/about">About Us</Link>
+          {user ? (
+            <>
+              <span className="nav-greeting">Hi, {user.name}</span>
+              <button type="button" className="link-button" onClick={handleSignOut}>
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/signin">Sign In</Link>
+              <Link to="/signup" className="primary-button">
+                Sign Up
+              </Link>
+            </>
+          )}
+        </nav>
+      </div>
     </header>
   )
 }

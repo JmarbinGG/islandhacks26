@@ -1,26 +1,34 @@
 :root {
-  /* Frutiger Aero palette - glossy glass over a sky/aqua/green gradient. */
-  --bg-sky: #7fcbf2;
-  --bg-aqua: #98e4d6;
-  --bg-green: #bcebba;
-  --glass-surface: rgba(255, 255, 255, 0.42);
+  /* "Liquid glass" theme: a vivid blue-to-green gradient behind translucent,
+     blurred glass panels - the glass needs real color underneath it to read
+     as glass at all, so the gradient stays saturated top to bottom instead
+     of fading out to plain white. */
+  --bg-gradient: linear-gradient(160deg, #62c3f8 0%, #8fdfd0 50%, #bcebba 100%);
+
+  --glass-surface: rgba(255, 255, 255, 0.4);
   --glass-surface-strong: rgba(255, 255, 255, 0.55);
-  --glass-border: rgba(255, 255, 255, 0.75);
-  --glass-inner-bevel: inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1.5px 2px 0 rgba(0, 70, 90, 0.15);
-  --glass-shadow: 0 10px 25px rgba(18, 92, 117, 0.18), 0 2px 6px rgba(0, 0, 0, 0.06);
+  --glass-shadow: 0 1px 2px rgba(16, 33, 48, 0.08), 0 10px 30px rgba(16, 33, 48, 0.16);
+  --glass-shadow-hover: 0 4px 14px rgba(16, 33, 48, 0.14), 0 20px 40px rgba(16, 33, 48, 0.2);
 
-  --text: #0f3d4c;
-  --muted: #2d6b7b;
-  --border: rgba(255, 255, 255, 0.7);
-  --surface: rgba(255, 255, 255, 0.35);
-  --accent-glow: #e4fdff;
+  --border: rgba(16, 33, 48, 0.12);
+
+  --text: #10212b;
+  --text-muted: #43586a;
+  --text-subtle: #77899a;
+
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-tint: rgba(37, 99, 235, 0.16);
+
   --danger: #a8323a;
-  --radius: 14px;
 
-  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--text);
-  background: linear-gradient(160deg, #62c3f8 0%, #a2ebd8 55%, #c8f5c3 100%);
+  background: var(--bg-gradient);
 }
 
 * {
@@ -31,43 +39,10 @@ body {
   margin: 0;
   line-height: 1.5;
   min-height: 100vh;
-  background-image: url('./assets/field-sky-bg.webp');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background: var(--bg-gradient);
   background-attachment: fixed;
   position: relative;
   overflow-x: hidden;
-}
-
-/* Ambient water-bubble decorations behind the glass panel. */
-body::before,
-body::after {
-  content: '';
-  position: fixed;
-  border-radius: 50%;
-  pointer-events: none;
-  background: radial-gradient(
-    circle at 35% 30%,
-    rgba(255, 255, 255, 0.8) 0%,
-    rgba(255, 255, 255, 0.2) 60%,
-    rgba(160, 220, 255, 0.3) 100%
-  );
-  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.9), inset 0 -4px 8px rgba(0, 100, 140, 0.2),
-    0 8px 20px rgba(0, 50, 70, 0.15);
-  z-index: 0;
-}
-body::before {
-  width: 140px;
-  height: 140px;
-  top: 12%;
-  right: 6%;
-}
-body::after {
-  width: 90px;
-  height: 90px;
-  bottom: 18%;
-  left: 4%;
 }
 
 img {
