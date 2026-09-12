@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local dev database
+listings.db
+
+# Node
+node_modules/
+dist/
+
+# Local env overrides
+.env
+.env.local
