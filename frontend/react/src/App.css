@@ -701,6 +701,19 @@
   color: var(--text-subtle);
 }
 
+/* Inline status under the photo field - deliberately not the page-level
+   .state class, which is meant for a full empty/loading page and has a big
+   3rem vertical padding that looks broken squeezed into a compact form. */
+.photo-status {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 8px 0 0;
+}
+
+.photo-status--error {
+  color: var(--danger);
+}
+
 .form-error {
   color: var(--danger);
   font-size: 0.85rem;

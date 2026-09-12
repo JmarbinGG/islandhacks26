@@ -74,7 +74,11 @@ class NvidiaVlmClassifier:
                 "temperature": 0.2,
                 "stream": False,
             },
-            timeout=60,
+            # Bigger vision models (e.g. moonshotai/kimi-k3, a 2.8T-param MoE)
+            # can comfortably exceed 60s - the default Llama vision model
+            # rarely needed more than a few seconds, but this needs to cover
+            # whichever model NVIDIA_VLM_MODEL is actually pointed at.
+            timeout=180,
         )
         response.raise_for_status()
         content = response.json()["choices"][0]["message"]["content"]

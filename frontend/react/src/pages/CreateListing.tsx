@@ -98,6 +98,23 @@ export default function CreateListing() {
             <label htmlFor="listing-image" className="secondary-button file-input__button">
               Choose File
             </label>
+
+            {/* Same accept/handler, but `capture` opens the camera directly
+                on phones instead of the file library. */}
+            <input
+              id="listing-photo-capture"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handlePhotoChange}
+            />
+            <label
+              htmlFor="listing-photo-capture"
+              className="secondary-button file-input__button"
+            >
+              Take Photo
+            </label>
+
             {imagePreview ? (
               <img src={imagePreview} alt="" className="file-input__preview" />
             ) : (
@@ -105,12 +122,12 @@ export default function CreateListing() {
             )}
           </div>
           {analyzing && (
-            <p className="state" role="status">
+            <p className="photo-status" role="status">
               Analyzing photo...
             </p>
           )}
           {analyzeError && (
-            <p className="state state--error" role="alert">
+            <p className="photo-status photo-status--error" role="alert">
               {analyzeError} Fill in the details below manually.
             </p>
           )}

@@ -10,6 +10,9 @@ venv/
 # Local dev database
 listings.db
 
+# User-uploaded photos (runtime content, not source)
+backend/uploads/
+
 # Node
 node_modules/
 dist/
