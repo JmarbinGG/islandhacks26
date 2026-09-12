@@ -76,6 +76,43 @@ export async function getJSON<T>(
 }
 
 /**
+ * POST `path` with a FormData body (file uploads) and parse the JSON
+ * response. No Content-Type header is set - the browser fills in the
+ * multipart boundary itself.
+ *
+ * @param path Path relative to API_BASE_URL, e.g. `/api/analyze`.
+ * @param body FormData, e.g. containing a File under an `image` field.
+ */
+export async function postForm<T>(
+  path: string,
+  body: FormData,
+  signal?: AbortSignal,
+): Promise<T> {
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'ngrok-skip-browser-warning': 'true' },
+      body,
+      signal,
+    })
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') throw error
+    throw new ApiError(
+      `Could not reach the API at ${API_BASE_URL}. Is the backend running?`,
+    )
+  }
+
+  if (!response.ok) throw new ApiError(await errorMessage(response), response.status)
+
+  try {
+    return (await response.json()) as T
+  } catch {
+    throw new ApiError('The API returned a response that was not valid JSON.')
+  }
+}
+
+/**
  * POST `path` with a JSON body and parse the JSON response.
  *
  * @param path Path relative to API_BASE_URL, e.g. `/api/login`.

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { analyzeImage, resolveImageUrl } from '../api/analyze'
 import { createListing } from '../api/listings'
 import { useAuth } from '../auth/AuthContext'
 
@@ -10,17 +11,48 @@ export default function CreateListing() {
   const [category, setCategory] = useState('')
   const [location, setLocation] = useState('')
   const [quantity, setQuantity] = useState('')
+  const [tags, setTags] = useState('')
   const [email, setEmail] = useState(user?.email ?? '')
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null)
+  const [analyzing, setAnalyzing] = useState(false)
+  const [analyzeError, setAnalyzeError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const navigate = useNavigate()
 
-  // No backend file storage yet - this local preview URL only resolves in
-  // this browser tab, but it's the closest thing to a real photo for now.
-  function handlePhotoChange(event: React.ChangeEvent<HTMLInputElement>) {
+  // Local preview shows instantly; the photo is also sent to /api/analyze,
+  // which saves it server-side and returns an AI-suggested name/category/
+  // tags/quantity (see backend/ai/factory.py - the model behind this is
+  // swappable, but the response shape stays the same). Fields the user has
+  // already typed into are left alone.
+  async function handlePhotoChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
-    setImagePreview(file ? URL.createObjectURL(file) : null)
+    if (!file) {
+      setImagePreview(null)
+      setUploadedImageUrl(null)
+      return
+    }
+
+    setImagePreview(URL.createObjectURL(file))
+    setUploadedImageUrl(null)
+    setAnalyzeError(null)
+    setAnalyzing(true)
+
+    try {
+      const result = await analyzeImage(file)
+      setUploadedImageUrl(resolveImageUrl(result.image_url))
+      setName((prev) => prev || result.name)
+      setCategory((prev) => prev || result.category)
+      setQuantity((prev) => prev || result.quantity)
+      setTags((prev) => prev || result.tags)
+    } catch (err) {
+      setAnalyzeError(
+        err instanceof Error ? err.message : 'Could not auto-analyze this photo.',
+      )
+    } finally {
+      setAnalyzing(false)
+    }
   }
 
   async function handleSubmit(event: React.FormEvent) {
@@ -33,8 +65,9 @@ export default function CreateListing() {
         category: category.trim() || undefined,
         location: location.trim() || undefined,
         quantity: quantity.trim() || undefined,
+        tags: tags.trim() || undefined,
         email: email.trim() || undefined,
-        image: imagePreview ?? undefined,
+        image: uploadedImageUrl ?? undefined,
         owner: user?.name,
         mailtolink: email.trim()
           ? `mailto:${email.trim()}?subject=${encodeURIComponent(name)}`
@@ -53,6 +86,36 @@ export default function CreateListing() {
       <h1>Create Listing</h1>
 
       <form onSubmit={handleSubmit}>
+        <div className="form-field">
+          <label htmlFor="listing-image">Photo</label>
+          <div className="file-input">
+            <input
+              id="listing-image"
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+            />
+            <label htmlFor="listing-image" className="secondary-button file-input__button">
+              Choose File
+            </label>
+            {imagePreview ? (
+              <img src={imagePreview} alt="" className="file-input__preview" />
+            ) : (
+              <span className="file-input__hint">No photo selected</span>
+            )}
+          </div>
+          {analyzing && (
+            <p className="state" role="status">
+              Analyzing photo...
+            </p>
+          )}
+          {analyzeError && (
+            <p className="state state--error" role="alert">
+              {analyzeError} Fill in the details below manually.
+            </p>
+          )}
+        </div>
+
         <div className="form-field">
           <label htmlFor="listing-name">Item name</label>
           <input
@@ -98,6 +161,17 @@ export default function CreateListing() {
         </div>
 
         <div className="form-field">
+          <label htmlFor="listing-tags">Tags</label>
+          <input
+            id="listing-tags"
+            type="text"
+            placeholder="e.g. wood, pallets, lumber"
+            value={tags}
+            onChange={(event) => setTags(event.target.value)}
+          />
+        </div>
+
+        <div className="form-field">
           <label htmlFor="listing-email">Contact email</label>
           <input
             id="listing-email"
@@ -108,33 +182,13 @@ export default function CreateListing() {
           />
         </div>
 
-        <div className="form-field">
-          <label htmlFor="listing-image">Photo</label>
-          <div className="file-input">
-            <input
-              id="listing-image"
-              type="file"
-              accept="image/*"
-              onChange={handlePhotoChange}
-            />
-            <label htmlFor="listing-image" className="secondary-button file-input__button">
-              Choose File
-            </label>
-            {imagePreview ? (
-              <img src={imagePreview} alt="" className="file-input__preview" />
-            ) : (
-              <span className="file-input__hint">No photo selected</span>
-            )}
-          </div>
-        </div>
-
         {error && (
           <p className="form-error" role="alert">
             {error}
           </p>
         )}
 
-        <button type="submit" className="primary-button" disabled={submitting}>
+        <button type="submit" className="primary-button" disabled={submitting || analyzing}>
           {submitting ? 'Creating...' : 'Create Listing'}
         </button>
       </form>

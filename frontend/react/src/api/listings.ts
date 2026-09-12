@@ -79,6 +79,7 @@ export type NewListing = {
   image?: string
   owner?: string
   mailtolink?: string
+  tags?: string
 }
 
 /** Create a listing. Returns the saved row, including its new id. */
