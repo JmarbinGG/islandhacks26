@@ -30,6 +30,47 @@ class Listing(Base):
 
 Base.metadata.create_all(bind=engine)
 
+MOCK_LISTINGS = [
+    Listing(
+        name="Cardboard Boxes (Bulk)",
+        image="https://placehold.co/400x300?text=Cardboard",
+        owner="Acme Warehousing",
+        location="Austin, TX",
+        quantity="200 units",
+        email="acme@example.com",
+        mailtolink="mailto:acme@example.com?subject=Cardboard Boxes",
+        status="available",
+        category="paper",
+    ),
+    Listing(
+        name="Scrap Metal Offcuts",
+        image="https://placehold.co/400x300?text=Scrap+Metal",
+        owner="Metro Fabrication",
+        location="Detroit, MI",
+        quantity="1.5 tons",
+        email="metro@example.com",
+        mailtolink="mailto:metro@example.com?subject=Scrap Metal Offcuts",
+        status="available",
+        category="metal",
+    ),
+    Listing(
+        name="Expired Produce Crates",
+        image="https://placehold.co/400x300?text=Produce",
+        owner="GreenLeaf Grocers",
+        location="Sacramento, CA",
+        quantity="50 crates",
+        email="greenleaf@example.com",
+        mailtolink="mailto:greenleaf@example.com?subject=Produce Crates",
+        status="available",
+        category="organic",
+    ),
+]
+
+with SessionLocal() as _db:
+    if _db.query(Listing).count() == 0:
+        _db.add_all(MOCK_LISTINGS)
+        _db.commit()
+
 
 class ListingCreate(BaseModel):
     name: str
