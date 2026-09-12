@@ -24,6 +24,9 @@ export default function Navbar() {
           <Link to="/about">About Us</Link>
           {user ? (
             <>
+              <Link to="/listings/new" className="primary-button">
+                + New Listing
+              </Link>
               <span className="nav-greeting">Hi, {user.name}</span>
               <button type="button" className="link-button" onClick={handleSignOut}>
                 Sign Out

@@ -25,48 +25,63 @@ export default function SignIn() {
   }
 
   return (
-    <section className="auth-panel">
-      <h1>Sign In</h1>
+    <div className="auth-layout">
+      <div className="auth-pitch">
+        <h2>Welcome back.</h2>
+        <p>
+          Pick up right where you left off - keep browsing surplus materials from businesses
+          near you, or list your own for someone else to find.
+        </p>
+        <ul>
+          <li>Track your own listings in one place</li>
+          <li>Message owners directly when you find what you need</li>
+          <li>Come back anytime - nothing here expires</li>
+        </ul>
+      </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="form-field">
-          <label htmlFor="signin-email">Email</label>
-          <input
-            id="signin-email"
-            type="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            autoComplete="email"
-          />
-        </div>
+      <section className="auth-panel">
+        <h1>Sign In</h1>
 
-        <div className="form-field">
-          <label htmlFor="signin-password">Password</label>
-          <input
-            id="signin-password"
-            type="password"
-            required
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            autoComplete="current-password"
-          />
-        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="form-field">
+            <label htmlFor="signin-email">Email</label>
+            <input
+              id="signin-email"
+              type="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
+            />
+          </div>
 
-        {error && (
-          <p className="form-error" role="alert">
-            {error}
-          </p>
-        )}
+          <div className="form-field">
+            <label htmlFor="signin-password">Password</label>
+            <input
+              id="signin-password"
+              type="password"
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="current-password"
+            />
+          </div>
 
-        <button type="submit" className="primary-button" disabled={submitting}>
-          {submitting ? 'Signing in...' : 'Sign In'}
-        </button>
-      </form>
+          {error && (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          )}
 
-      <p className="auth-switch">
-        Don't have an account? <Link to="/signup">Sign up</Link>
-      </p>
-    </section>
+          <button type="submit" className="primary-button" disabled={submitting}>
+            {submitting ? 'Signing in...' : 'Sign In'}
+          </button>
+        </form>
+
+        <p className="auth-switch">
+          Don't have an account? <Link to="/signup">Sign up</Link>
+        </p>
+      </section>
+    </div>
   )
 }

@@ -1,18 +1,20 @@
 import type { Listing } from '../types'
-import { getJSON } from './client'
+import { getJSON, postJSON } from './client'
 
 /**
  * Backend routes (see backend/main.py):
  *
- *   GET /api/search?query=<q>   full-text-ish search over name/category/location
- *   GET /api/listings           every listing
- *   GET /api/listings?id=<id>   a single listing (404 if missing)
+ *   GET  /api/search?query=<q>   full-text-ish search over name/category/location
+ *   GET  /api/listings           every listing
+ *   GET  /api/listings?id=<id>   a single listing (404 if missing)
+ *   POST /api/upload             create a listing - only `name` is required
  *
  * Note the search param is `query`, not `q`, and a single listing is fetched
  * with an `id` query param rather than a path segment.
  */
 const SEARCH_PATH = '/api/search'
 const LISTINGS_PATH = '/api/listings'
+const UPLOAD_PATH = '/api/upload'
 
 /**
  * FastAPI returns bare arrays here, but we also accept a `{ results: [...] }`
@@ -65,4 +67,21 @@ export async function getListing(
   }
 
   return payload as Listing
+}
+
+/** Fields for a new listing. Only `name` is required by the backend. */
+export type NewListing = {
+  name: string
+  category?: string
+  location?: string
+  quantity?: string
+  email?: string
+  image?: string
+  owner?: string
+  mailtolink?: string
+}
+
+/** Create a listing. Returns the saved row, including its new id. */
+export function createListing(listing: NewListing): Promise<Listing> {
+  return postJSON<Listing>(UPLOAD_PATH, listing)
 }

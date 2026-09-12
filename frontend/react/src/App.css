@@ -199,7 +199,8 @@
 .search-bar {
   display: flex;
   align-items: stretch;
-  margin: 2rem 0 0;
+  flex: 1;
+  min-width: 0;
   border-radius: 999px;
   overflow: hidden;
   background: var(--glass-surface-strong);
@@ -214,9 +215,41 @@
   box-shadow: 0 0 0 3px var(--accent-tint);
 }
 
-.search-bar--large {
-  max-width: 620px;
+/* The row wrapping the pill and the round "+" - centering the whole group
+   together (not just the pill alone) is what this owns. */
+.search-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 2rem 0 0;
+}
+
+.search-bar-row--large {
+  max-width: 684px;
   margin-inline: auto;
+}
+
+.new-listing-fab {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #ffffff;
+  background: var(--accent);
+  box-shadow: 0 1px 2px rgba(16, 33, 48, 0.1);
+  transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+
+.new-listing-fab:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(16, 33, 48, 0.16);
 }
 
 .search-bar__form {
@@ -541,6 +574,40 @@
   margin-inline: auto;
 }
 
+/* ---- sign-up layout: mission pitch, empty space, then the form ---- */
+
+.auth-layout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 64px;
+  flex-wrap: wrap;
+}
+
+.auth-pitch {
+  flex: 1 1 360px;
+  max-width: 420px;
+}
+
+.auth-pitch h2 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.auth-pitch p {
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.auth-pitch ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--text-muted);
+  line-height: 1.8;
+}
+
 /* ---- auth forms (sign in / sign up) ---- */
 
 .auth-panel {
@@ -551,6 +618,13 @@
   padding: 32px;
   max-width: 400px;
   margin-inline: auto;
+}
+
+/* Inside the auth layout, .auth-layout's own centering handles
+   positioning - an auto margin here would fight it. */
+.auth-layout .auth-panel {
+  margin-inline: 0;
+  flex: 0 0 auto;
 }
 
 .auth-panel h1 {
@@ -597,6 +671,42 @@
   margin-top: 0.25rem;
 }
 
+/* File picker: hide the native input, trigger it via a styled label instead,
+   and show a small thumbnail once a photo is chosen. */
+.file-input {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.auth-panel .file-input input[type='file'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: none;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.file-input__button {
+  flex: 0 0 auto;
+}
+
+.file-input__preview {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
+.file-input__hint {
+  font-size: 0.85rem;
+  color: var(--text-subtle);
+}
+
 .form-error {
   color: var(--danger);
   font-size: 0.85rem;
@@ -631,9 +741,23 @@
   color: var(--text);
 }
 
+.prose h2 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-top: 1.5rem;
+}
+
 .prose p {
   color: var(--text-muted);
   line-height: 1.65;
+}
+
+.prose ul {
+  margin: 0 0 1rem;
+  padding-left: 1.2rem;
+  color: var(--text-muted);
+  line-height: 1.8;
 }
 
 /* ---- landing page (separate from the app itself) ---- */
