@@ -161,34 +161,3 @@ export async function postJSON<T>(path: string, body: unknown): Promise<T> {
     throw new ApiError('The API returned a response that was not valid JSON.')
   }
 }
-
-/**
- * POST `path` with multipart form data (e.g. a file upload) and parse the
- * JSON response. No Content-Type header here on purpose - the browser sets
- * the multipart boundary itself when the body is a FormData.
- *
- * @param path Path relative to API_BASE_URL, e.g. `/api/analyze`.
- * @param formData The multipart body to send.
- */
-export async function postFormData<T>(path: string, formData: FormData): Promise<T> {
-  let response: Response
-  try {
-    response = await fetch(`${API_BASE_URL}${path}`, {
-      method: 'POST',
-      headers: { Accept: 'application/json', 'ngrok-skip-browser-warning': 'true' },
-      body: formData,
-    })
-  } catch {
-    throw new ApiError(
-      `Could not reach the API at ${API_BASE_URL}. Is the backend running?`,
-    )
-  }
-
-  if (!response.ok) throw new ApiError(await errorMessage(response), response.status)
-
-  try {
-    return (await response.json()) as T
-  } catch {
-    throw new ApiError('The API returned a response that was not valid JSON.')
-  }
-}

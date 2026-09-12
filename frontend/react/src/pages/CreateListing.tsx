@@ -86,53 +86,6 @@ export default function CreateListing() {
       <h1>Create Listing</h1>
 
       <form onSubmit={handleSubmit}>
-        {/* Photo comes first - it's what feeds the category auto-fill below,
-            so seeing/taking it before the rest of the fields follows the
-            order you'd actually use them in. */}
-        <div className="form-field">
-          <label htmlFor="listing-image">Photo</label>
-          <div className="file-input">
-            <input
-              id="listing-image"
-              type="file"
-              accept="image/*"
-              onChange={handlePhotoChange}
-            />
-            <label htmlFor="listing-image" className="secondary-button file-input__button">
-              Choose File
-            </label>
-
-            {/* Same accept/handler, but `capture` opens the camera directly
-                on phones instead of the file library. */}
-            <input
-              id="listing-photo-capture"
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={handlePhotoChange}
-            />
-            <label
-              htmlFor="listing-photo-capture"
-              className="secondary-button file-input__button"
-            >
-              Take Photo
-            </label>
-
-            {imageUrl ? (
-              <img src={imageUrl} alt="" className="file-input__preview" />
-            ) : (
-              <span className="file-input__hint">
-                {analyzing ? 'Analyzing photo...' : 'No photo selected'}
-              </span>
-            )}
-          </div>
-          {analyzeError && (
-            <p className="form-error" role="alert">
-              {analyzeError}
-            </p>
-          )}
-        </div>
-
         <div className="form-field">
           <label htmlFor="listing-image">Photo</label>
           <div className="file-input">
