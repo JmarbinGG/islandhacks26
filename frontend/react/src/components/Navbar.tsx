@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import logo from '../assets/logo.png'
 
 /**
  * Top navigation. Sign in / sign up are placeholders - there is no auth yet
@@ -8,9 +9,8 @@ export default function Navbar() {
   return (
     <header className="navbar">
       <Link to="/" className="logo">
-        <span className="logo-text">
-          by<span>product</span>.
-        </span>
+        <img src={logo} alt="byproduct." className="logo-mark" />
+        <span className="logo-period">.</span>
       </Link>
 
       <nav className="nav-links">

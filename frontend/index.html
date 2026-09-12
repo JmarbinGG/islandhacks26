@@ -78,20 +78,18 @@
     .brand-logo {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 2px;
+    }
+    .brand-logo .logo-mark {
+      height: 28px;
+      width: auto;
+      display: block;
+    }
+    .brand-logo .logo-period {
       font-size: 1.4rem;
       font-weight: 800;
-      letter-spacing: 0.5px;
-      color: #0b4e63;
+      color: #003748;
       text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
-    }
-    .brand-logo .droplet {
-      width: 22px;
-      height: 22px;
-      background: radial-gradient(circle at 35% 25%, #ffffff 0%, #46c0e5 70%);
-      border-radius: 50% 0 50% 50%;
-      transform: rotate(-45deg);
-      box-shadow: inset -1px -2px 3px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0,0,0,0.1);
     }
     .nav-links a {
       color: var(--text-dark);
@@ -432,8 +430,8 @@
   <div class="app-window">
     <div class="nav-bar">
       <div class="brand-logo">
-        <span class="droplet"></span>
-        byproduct.
+        <img src="./UI/logo-trimmed.png" alt="byproduct." class="logo-mark" />
+        <span class="logo-period">.</span>
       </div>
       <nav class="nav-links">
         <a href="#" onclick="return false;">About Us</a>

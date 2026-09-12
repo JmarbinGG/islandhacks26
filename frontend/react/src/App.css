@@ -44,26 +44,20 @@
 .logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 2px;
+}
+
+.logo-mark {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+
+.logo-period {
   font-size: 1.4rem;
   font-weight: 800;
-  letter-spacing: 0.5px;
-  color: #0a3a49;
+  color: #003748;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
-}
-
-.logo::before {
-  content: '';
-  width: 20px;
-  height: 20px;
-  background: radial-gradient(circle at 35% 25%, #ffffff 0%, #46c0e5 70%);
-  border-radius: 50% 0 50% 50%;
-  transform: rotate(-45deg);
-  box-shadow: inset -1px -2px 3px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.logo span {
-  color: #0a3a49;
 }
 
 .nav-links {
