@@ -54,7 +54,10 @@ export async function getJSON<T>(
 
   let response: Response
   try {
-    response = await fetch(url, { signal, headers: { Accept: 'application/json' } })
+    response = await fetch(url, {
+      signal,
+      headers: { Accept: 'application/json', 'ngrok-skip-browser-warning': 'true' },
+    })
   } catch (error) {
     // AbortError means we cancelled on purpose - let callers ignore it.
     if (error instanceof DOMException && error.name === 'AbortError') throw error
@@ -83,7 +86,11 @@ export async function postJSON<T>(path: string, body: unknown): Promise<T> {
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      },
       body: JSON.stringify(body),
     })
   } catch {
