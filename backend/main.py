@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy import create_engine, or_, Column, Integer, String
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 DATABASE_URL = "sqlite:///./listings.db"
@@ -26,6 +26,7 @@ class Listing(Base):
     mailtolink = Column(String)
     status = Column(String, default="available")
     category = Column(String)
+    tags = Column(String)  # comma-separated keywords, e.g. "wood,lumber,pallets"
 
 
 Base.metadata.create_all(bind=engine)
@@ -33,7 +34,7 @@ Base.metadata.create_all(bind=engine)
 MOCK_LISTINGS = [
     Listing(
         name="Cardboard Boxes (Bulk)",
-        image="https://placehold.co/400x300?text=Cardboard",
+        image="https://images.unsplash.com/photo-1607166452427-7e4477079cb9?w=400&h=300&fit=crop",
         owner="Acme Warehousing",
         location="Austin, TX",
         quantity="200 units",
@@ -44,7 +45,7 @@ MOCK_LISTINGS = [
     ),
     Listing(
         name="Scrap Metal Offcuts",
-        image="https://placehold.co/400x300?text=Scrap+Metal",
+        image="https://images.unsplash.com/photo-1679996287979-166522b96c39?w=400&h=300&fit=crop",
         owner="Metro Fabrication",
         location="Detroit, MI",
         quantity="1.5 tons",
@@ -55,7 +56,7 @@ MOCK_LISTINGS = [
     ),
     Listing(
         name="Expired Produce Crates",
-        image="https://placehold.co/400x300?text=Produce",
+        image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZKYgTneAypATX8GEVxfwjiqxrf5S8qwImTuy8dC26DA&s=10",
         owner="GreenLeaf Grocers",
         location="Sacramento, CA",
         quantity="50 crates",
@@ -63,6 +64,18 @@ MOCK_LISTINGS = [
         mailtolink="mailto:greenleaf@example.com?subject=Produce Crates",
         status="available",
         category="organic",
+    ),
+    Listing(
+        name="Wood Pallets",
+        image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR015P-l3pfCMSXGVO2MlE6GlPyBfeLXNUHvs8mAgWCNpnASWom3m8Zd0Fr&s=10",
+        owner="Union Logistics",
+        location="Portland, OR",
+        quantity="80 pallets",
+        email="union@example.com",
+        mailtolink="mailto:union@example.com?subject=Wood Pallets",
+        status="available",
+        category="wood",
+        tags="wood,lumber,timber,shipping",
     ),
 ]
 
@@ -82,6 +95,7 @@ class ListingCreate(BaseModel):
     mailtolink: Optional[str] = None
     status: Optional[str] = "available"
     category: Optional[str] = None
+    tags: Optional[str] = None
 
 
 class ListingOut(ListingCreate):
@@ -101,20 +115,51 @@ app.add_middleware(
 )
 
 
+# Synonym groups: searching any term in a group also matches the rest of the group.
+SYNONYM_GROUPS = [
+    {"wood", "pallets", "lumber", "timber"},
+    {"metal", "scrap metal", "steel", "aluminum", "offcuts"},
+    {"paper", "cardboard", "boxes", "packaging"},
+    {"organic", "produce", "food waste", "compost"},
+    {"plastic", "polymer"},
+]
+
+
+def expand_query_terms(query: str) -> set[str]:
+    q = query.strip().lower()
+    if not q:
+        return set()
+    terms = {q}
+    for group in SYNONYM_GROUPS:
+        if q in group:
+            terms |= group
+    return terms
+
+
 @app.get("/api/search", response_model=list[ListingOut])
 def search_listings(query: str = ""):
     db = SessionLocal()
     try:
-        like = f"%{query}%"
-        results = db.query(Listing).filter(
-            (Listing.name.ilike(like))
-            | (Listing.category.ilike(like))
-            | (Listing.location.ilike(like))
-        ).all()
+        terms = expand_query_terms(query)
+        if not terms:
+            return db.query(Listing).all()
+
+        filters = []
+        for term in terms:
+            like = f"%{term}%"
+            filters.append(Listing.name.ilike(like))
+            filters.append(Listing.category.ilike(like))
+            filters.append(Listing.location.ilike(like))
+            filters.append(Listing.tags.ilike(like))
+
+        results = db.query(Listing).filter(or_(*filters)).all()
         return results
     finally:
         db.close()
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
 
 @app.get("/api/listings", response_model=list[ListingOut] | ListingOut)
 def get_listings(id: Optional[int] = None):
