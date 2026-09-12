@@ -1,8 +1,10 @@
+import uuid
 from typing import Optional
 
+import bcrypt
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from sqlalchemy import create_engine, or_, Column, Integer, String
 from sqlalchemy.orm import declarative_base, sessionmaker
 
@@ -27,6 +29,15 @@ class Listing(Base):
     status = Column(String, default="available")
     category = Column(String)
     tags = Column(String)  # comma-separated keywords, e.g. "wood,lumber,pallets"
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    email = Column(String, nullable=False, unique=True, index=True)
+    password = Column(String, nullable=False)  # bcrypt hash
 
 
 Base.metadata.create_all(bind=engine)
@@ -105,6 +116,43 @@ class ListingOut(ListingCreate):
         from_attributes = True
 
 
+class SignupRequest(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class UserOut(BaseModel):
+    id: int
+    name: str
+    email: str
+
+    class Config:
+        from_attributes = True
+
+
+class AuthResponse(BaseModel):
+    token: str
+    user: UserOut
+
+
+# In-memory token store: token -> user id. Fine for a hackathon; wiped on restart.
+SESSIONS: dict[str, int] = {}
+
+
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+
+def verify_password(password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode(), hashed.encode())
+
+
 app = FastAPI()
 
 app.add_middleware(
@@ -160,6 +208,40 @@ def search_listings(query: str = ""):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.post("/api/signup", response_model=AuthResponse)
+def signup(body: SignupRequest):
+    db = SessionLocal()
+    try:
+        if db.query(User).filter(User.email == body.email).first():
+            raise HTTPException(status_code=400, detail="Email already registered")
+
+        user = User(name=body.name, email=body.email, password=hash_password(body.password))
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        token = str(uuid.uuid4())
+        SESSIONS[token] = user.id
+        return AuthResponse(token=token, user=UserOut.model_validate(user))
+    finally:
+        db.close()
+
+
+@app.post("/api/login", response_model=AuthResponse)
+def login(body: LoginRequest):
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.email == body.email).first()
+        if not user or not verify_password(body.password, user.password):
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+
+        token = str(uuid.uuid4())
+        SESSIONS[token] = user.id
+        return AuthResponse(token=token, user=UserOut.model_validate(user))
+    finally:
+        db.close()
 
 @app.get("/api/listings", response_model=list[ListingOut] | ListingOut)
 def get_listings(id: Optional[int] = None):
