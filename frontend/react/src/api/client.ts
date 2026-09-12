@@ -3,8 +3,25 @@
  * base URL, error handling and JSON parsing live in exactly one place.
  */
 
+/**
+ * When the page itself was loaded from "localhost", the backend defaults to
+ * "localhost:8000" too - fine on one machine. But if a phone loads the page
+ * over LAN (e.g. http://192.168.1.23:5173, via vite's host:true), its own
+ * "localhost" is the phone - there's nothing listening there. In that case,
+ * assume the backend is on the same host the page came from, port 8000.
+ * VITE_API_BASE_URL always overrides this if set explicitly.
+ */
+function defaultApiBase(): string {
+  if (typeof window === 'undefined') return 'http://localhost:8000'
+  const { protocol, hostname } = window.location
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:8000'
+  }
+  return `${protocol}//${hostname}:8000`
+}
+
 export const API_BASE_URL = (
-  import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+  import.meta.env.VITE_API_BASE_URL ?? defaultApiBase()
 ).replace(/\/$/, '')
 
 /** An HTTP or network failure, carrying the status code when we have one. */
@@ -92,6 +109,37 @@ export async function postJSON<T>(path: string, body: unknown): Promise<T> {
         'ngrok-skip-browser-warning': 'true',
       },
       body: JSON.stringify(body),
+    })
+  } catch {
+    throw new ApiError(
+      `Could not reach the API at ${API_BASE_URL}. Is the backend running?`,
+    )
+  }
+
+  if (!response.ok) throw new ApiError(await errorMessage(response), response.status)
+
+  try {
+    return (await response.json()) as T
+  } catch {
+    throw new ApiError('The API returned a response that was not valid JSON.')
+  }
+}
+
+/**
+ * POST `path` with multipart form data (e.g. a file upload) and parse the
+ * JSON response. No Content-Type header here on purpose - the browser sets
+ * the multipart boundary itself when the body is a FormData.
+ *
+ * @param path Path relative to API_BASE_URL, e.g. `/api/analyze`.
+ * @param formData The multipart body to send.
+ */
+export async function postFormData<T>(path: string, formData: FormData): Promise<T> {
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'ngrok-skip-browser-warning': 'true' },
+      body: formData,
     })
   } catch {
     throw new ApiError(
