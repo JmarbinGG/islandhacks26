@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../auth/AuthContext'
 
 type Props = {
   /** Pre-fill the input, e.g. with the query from the URL. */
@@ -10,13 +9,12 @@ type Props = {
 
 /**
  * Search input + Search (primary) + Browse (secondary), on one line, plus a
- * round "+" that jumps straight to Create Listing when signed in. The whole
- * row (pill + circle) is centered together, not just the pill.
+ * round "+" that jumps straight to Create Listing. The whole row (pill +
+ * circle) is centered together, not just the pill.
  */
 export default function SearchBar({ initialQuery = '', size = 'small' }: Props) {
   const [value, setValue] = useState(initialQuery)
   const navigate = useNavigate()
-  const { user } = useAuth()
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -44,11 +42,9 @@ export default function SearchBar({ initialQuery = '', size = 'small' }: Props) 
         </Link>
       </div>
 
-      {user && (
-        <Link to="/listings/new" className="new-listing-fab" aria-label="Create a listing">
-          +
-        </Link>
-      )}
+      <Link to="/listings/new" className="new-listing-fab" aria-label="Create a listing">
+        +
+      </Link>
     </div>
   )
 }
