@@ -1,10 +1,11 @@
 import SearchBar from '../components/SearchBar'
-import ListingGrid from '../components/ListingGrid'
+import Stats from '../components/Stats'
 import { useListingSearch } from '../hooks/useListings'
 
 /**
- * Landing page: hero search, then a grid of everything the backend returns
- * for an empty query.
+ * Landing page: hero search, then marketplace stats. Browsing every listing
+ * happens via the Browse button (next to Search), which goes to /search -
+ * the home page itself no longer shows a live listings grid.
  */
 export default function Home() {
   const { data, loading, error } = useListingSearch('')
@@ -12,21 +13,12 @@ export default function Home() {
   return (
     <>
       <section className="hero">
-        <h1>Find what you need on the island</h1>
-        <p>Search listings shared by people nearby.</p>
+        <h1>Turning Byproducts Into Opportunities.</h1>
+        <p>Search surplus listings from businesses near you and give materials a second life.</p>
         <SearchBar size="large" />
       </section>
 
-      <section>
-        <h2>Browse Listings</h2>
-        <ListingGrid
-          listings={data}
-          loading={loading}
-          error={error}
-          emptyMessage="No listings yet."
-          onRetry={() => window.location.reload()}
-        />
-      </section>
+      <Stats listings={data} loading={loading} error={error} />
     </>
   )
 }
