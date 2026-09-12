@@ -6,6 +6,8 @@ import Home from './pages/Home'
 import ListingDetail from './pages/ListingDetail'
 import NotFound from './pages/NotFound'
 import SearchResults from './pages/SearchResults'
+import SignIn from './pages/SignIn'
+import SignUp from './pages/SignUp'
 import './App.css'
 
 export default function App() {
@@ -19,6 +21,8 @@ export default function App() {
             <Route path="/search" element={<SearchResults />} />
             <Route path="/listings/:id" element={<ListingDetail />} />
             <Route path="/about" element={<About />} />
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/signup" element={<SignUp />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>

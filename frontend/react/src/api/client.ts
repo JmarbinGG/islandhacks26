@@ -18,6 +18,21 @@ export class ApiError extends Error {
   }
 }
 
+/** FastAPI's HTTPException body is `{ "detail": "..." }` - surface that when present. */
+async function errorMessage(response: Response): Promise<string> {
+  try {
+    const body: unknown = await response.json()
+    if (body && typeof body === 'object' && typeof (body as { detail?: unknown }).detail === 'string') {
+      return (body as { detail: string }).detail
+    }
+  } catch {
+    // Body wasn't JSON - fall through to the generic message below.
+  }
+  return response.status === 404
+    ? 'Not found.'
+    : `The API returned ${response.status} ${response.statusText}.`
+}
+
 /**
  * GET `path` and parse the JSON body.
  *
@@ -48,14 +63,36 @@ export async function getJSON<T>(
     )
   }
 
-  if (!response.ok) {
+  if (!response.ok) throw new ApiError(await errorMessage(response), response.status)
+
+  try {
+    return (await response.json()) as T
+  } catch {
+    throw new ApiError('The API returned a response that was not valid JSON.')
+  }
+}
+
+/**
+ * POST `path` with a JSON body and parse the JSON response.
+ *
+ * @param path Path relative to API_BASE_URL, e.g. `/api/login`.
+ * @param body Request body, sent as JSON.
+ */
+export async function postJSON<T>(path: string, body: unknown): Promise<T> {
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(body),
+    })
+  } catch {
     throw new ApiError(
-      response.status === 404
-        ? 'Not found.'
-        : `The API returned ${response.status} ${response.statusText}.`,
-      response.status,
+      `Could not reach the API at ${API_BASE_URL}. Is the backend running?`,
     )
   }
+
+  if (!response.ok) throw new ApiError(await errorMessage(response), response.status)
 
   try {
     return (await response.json()) as T
