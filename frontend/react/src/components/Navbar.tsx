@@ -8,11 +8,12 @@ export default function Navbar() {
   return (
     <header className="navbar">
       <Link to="/" className="logo">
-        Island<span>Finds</span>
+        <span className="logo-text">
+          by<span>product</span>.
+        </span>
       </Link>
 
       <nav className="nav-links">
-        <Link to="/search">Browse</Link>
         <Link to="/about">About Us</Link>
         <button type="button" className="link-button" disabled title="Coming soon">
           Sign In

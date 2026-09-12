@@ -9,17 +9,19 @@ import './App.css'
 
 export default function App() {
   return (
-    <>
-      <Navbar />
-      <main className="container">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/search" element={<SearchResults />} />
-          <Route path="/listings/:id" element={<ListingDetail />} />
-          <Route path="/about" element={<About />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </main>
-    </>
+    <div className="app-shell">
+      <div className="app-window">
+        <Navbar />
+        <main className="container">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/search" element={<SearchResults />} />
+            <Route path="/listings/:id" element={<ListingDetail />} />
+            <Route path="/about" element={<About />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </main>
+      </div>
+    </div>
   )
 }

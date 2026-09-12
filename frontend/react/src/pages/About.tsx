@@ -4,7 +4,7 @@ export default function About() {
     <section className="prose">
       <h1>About Us</h1>
       <p>
-        IslandFinds is a simple marketplace for finding and sharing items with
+        byproduct. is a simple marketplace for finding and sharing items with
         people nearby. Search a listing, see who has it, and get in touch.
       </p>
       <p>Built at IslandHacks 2026.</p>
