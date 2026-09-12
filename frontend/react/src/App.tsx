@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 import AppLayout from './components/AppLayout'
 import About from './pages/About'
+import Categories from './pages/Categories'
 import CreateListing from './pages/CreateListing'
 import Home from './pages/Home'
 import Landing from './pages/Landing'
@@ -18,6 +19,7 @@ export default function App() {
       <Route element={<AppLayout />}>
         <Route path="/app" element={<Home />} />
         <Route path="/search" element={<SearchResults />} />
+        <Route path="/categories" element={<Categories />} />
         <Route path="/listings/new" element={<CreateListing />} />
         <Route path="/listings/:id" element={<ListingDetail />} />
         <Route path="/about" element={<About />} />

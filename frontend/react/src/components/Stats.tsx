@@ -24,8 +24,8 @@ export default function Stats({ listings, loading, error }: Props) {
   return (
     <section className="stats-panel">
       <h2>Marketplace Stats</h2>
-      {/* Each stat links to /search - the one place in the app where that
-          number can actually be explored further. */}
+      {/* Total/Available link to /search; Categories has its own page now
+          since "explore this number further" means different places. */}
       <div className="stat-cards">
         <Link to="/search" className="stat-card">
           <span className="stat-value">{rows.length}</span>
@@ -35,7 +35,7 @@ export default function Stats({ listings, loading, error }: Props) {
           <span className="stat-value">{available}</span>
           <span className="stat-label">Available now</span>
         </Link>
-        <Link to="/search" className="stat-card">
+        <Link to="/categories" className="stat-card">
           <span className="stat-value">{categories}</span>
           <span className="stat-label">Categories</span>
         </Link>

@@ -21,6 +21,7 @@ export default function Navbar() {
         </Link>
 
         <nav className="nav-links">
+          <Link to="/categories">Categories</Link>
           <Link to="/about">About Us</Link>
           {user ? (
             <>
