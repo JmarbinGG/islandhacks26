@@ -13,6 +13,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 load_dotenv()
 
+from ai.base import AnalysisResult
 from ai.factory import get_classifier
 
 UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "uploads")
@@ -482,7 +483,16 @@ def analyze_image(image: UploadFile = File(...)):
     with open(os.path.join(UPLOAD_DIR, filename), "wb") as f:
         f.write(contents)
 
-    result = get_classifier().analyze(contents)
+    # The photo is already saved above regardless of what happens next - the
+    # AI classification is just a convenience autofill on top of it. If it
+    # raises (AI backend timeout, network error, etc.) don't 500 the whole
+    # request: that would keep the client from ever learning image_url,
+    # silently dropping an already-uploaded photo from the listing. Fall back
+    # to empty suggestions instead, so the upload always succeeds.
+    try:
+        result = get_classifier().analyze(contents)
+    except Exception:
+        result = AnalysisResult(name="", category="", tags=[], quantity="", confidence=0.0)
 
     return {
         "name": result.name,
