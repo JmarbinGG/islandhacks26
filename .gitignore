@@ -20,3 +20,5 @@ dist/
 # Local env overrides
 .env
 .env.local
+
+# i love thomas
