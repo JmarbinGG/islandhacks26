@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { analyzeImage, resolveImageUrl } from '../api/analyze'
 import { createListing } from '../api/listings'
 import { useAuth } from '../auth/AuthContext'
@@ -91,6 +91,23 @@ export default function CreateListing() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  // Publishing requires an account - the create button is reachable from
+  // anywhere (navbar, the "+" FAB) regardless of sign-in state, so it's this
+  // page's job to turn an anonymous visit into a prompt instead of a form.
+  if (!user) {
+    return (
+      <section className="auth-panel create-listing-panel">
+        <h1>Create Listing</h1>
+        <div className="state">
+          <p>Sign in to publish a listing.</p>
+          <Link to="/signin" className="primary-button">
+            Sign In
+          </Link>
+        </div>
+      </section>
+    )
   }
 
   return (

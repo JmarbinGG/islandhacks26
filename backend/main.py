@@ -339,6 +339,30 @@ MOCK_LISTINGS = [
         category="construction",
         tags="construction,debris,demolition,leftovers,cleanup",
     ),
+    Listing(
+        name="Used Oak Wine Barrels",
+        image="https://images.unsplash.com/photo-1616401784845-180882ba9ba8?w=400&h=300&fit=crop",
+        owner="Napa Valley Cellars",
+        location="Napa, CA",
+        quantity="40 barrels",
+        email="napavalleycellars@example.com",
+        mailtolink="mailto:napavalleycellars@example.com?subject=Used Oak Wine Barrels",
+        status="available",
+        category="wood",
+        tags="wood,wine barrels,oak,barrels,reclaimed",
+    ),
+    Listing(
+        name="Half-Cut Wine Barrel Planters",
+        image="https://images.unsplash.com/photo-1616401784845-180882ba9ba8?w=400&h=300&fit=crop",
+        owner="Sonoma Ridge Winery",
+        location="Sonoma, CA",
+        quantity="15 planters",
+        email="sonomaridge@example.com",
+        mailtolink="mailto:sonomaridge@example.com?subject=Wine Barrel Planters",
+        status="available",
+        category="wood",
+        tags="wood,wine barrels,planters,oak,reclaimed",
+    ),
 ]
 
 with SessionLocal() as _db:
@@ -581,11 +605,11 @@ def get_my_listings(user_id: int = Depends(require_current_user_id)):
 @app.post("/api/upload", response_model=ListingOut)
 def create_listing(
     listing: ListingCreate,
-    owner_id: Optional[int] = Depends(get_current_user_id),
+    owner_id: int = Depends(require_current_user_id),
 ):
-    # Signed-in posters get ownership recorded automatically; posting while
-    # signed out still works (owner_id just stays null), matching how the
-    # rest of the app already allows anonymous listings.
+    # Publishing a listing requires an account - anonymous posting used to be
+    # allowed but every listing now needs a real owner (for My Listings,
+    # delete permissions, and just knowing who posted it).
     db = SessionLocal()
     try:
         new_listing = Listing(**listing.model_dump(), owner_id=owner_id)

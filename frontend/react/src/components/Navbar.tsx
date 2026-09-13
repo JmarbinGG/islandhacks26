@@ -25,10 +25,12 @@ export default function Navbar() {
           <Link to="/about">About Us</Link>
           {user ? (
             <>
+              {/* Same slots Sign In / Sign Up occupy when signed out - a
+                  plain link, then the primary-button action. */}
+              <Link to="/my-listings">My Listings</Link>
               <Link to="/listings/new" className="primary-button">
                 + New Listing
               </Link>
-              <Link to="/my-listings">My Listings</Link>
               <span className="nav-greeting">Hi, {user.name}</span>
               <button type="button" className="link-button" onClick={handleSignOut}>
                 Sign Out
