@@ -439,11 +439,19 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 
 @app.post("/api/analyze")
-async def analyze_image(image: UploadFile = File(...)):
+def analyze_image(image: UploadFile = File(...)):
     """Run the configured AI backend (see ai/factory.py) over an uploaded
     photo and return suggested listing fields for the user to review/edit
-    before calling /api/upload."""
-    contents = await image.read()
+    before calling /api/upload.
+
+    This is a sync `def`, not `async def`, on purpose: the NVIDIA/CLIP
+    backends make a slow, blocking network/inference call. FastAPI runs
+    sync routes in a worker thread pool, so that block doesn't freeze the
+    single-threaded event loop for every other endpoint - an `async def`
+    here previously froze the whole server (including /api/listings and
+    /api/search) for the duration of every analyze call.
+    """
+    contents = image.file.read()
 
     ext = os.path.splitext(image.filename or "")[1] or ".jpg"
     filename = f"{uuid.uuid4()}{ext}"
