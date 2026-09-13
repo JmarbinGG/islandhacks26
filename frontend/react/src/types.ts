@@ -19,5 +19,6 @@ export type Listing = {
   mailtolink?: string | null
   status?: string | null
   category?: string | null
+  owner_id?: number | null
   [extraColumn: string]: unknown
 }

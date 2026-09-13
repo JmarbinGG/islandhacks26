@@ -50,17 +50,25 @@ async function errorMessage(response: Response): Promise<string> {
     : `The API returned ${response.status} ${response.statusText}.`
 }
 
+/** Adds `Authorization: Bearer <token>` when a token is given - every helper
+ * below takes an optional token as its last argument for this. */
+function authHeaders(token?: string | null): Record<string, string> {
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
 /**
  * GET `path` and parse the JSON body.
  *
  * @param path   Path relative to API_BASE_URL, e.g. `/api/listings`.
  * @param params Query params. Null/undefined/empty values are dropped.
  * @param signal Abort signal, so stale requests can be cancelled.
+ * @param token  Bearer token, for routes that require or vary by identity.
  */
 export async function getJSON<T>(
   path: string,
   params?: Record<string, string | number | undefined | null>,
   signal?: AbortSignal,
+  token?: string | null,
 ): Promise<T> {
   const url = new URL(`${API_BASE_URL}${path}`)
   for (const [key, value] of Object.entries(params ?? {})) {
@@ -73,7 +81,11 @@ export async function getJSON<T>(
   try {
     response = await fetch(url, {
       signal,
-      headers: { Accept: 'application/json', 'ngrok-skip-browser-warning': 'true' },
+      headers: {
+        Accept: 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+        ...authHeaders(token),
+      },
     })
   } catch (error) {
     // AbortError means we cancelled on purpose - let callers ignore it.
@@ -132,10 +144,11 @@ export async function postForm<T>(
 /**
  * POST `path` with a JSON body and parse the JSON response.
  *
- * @param path Path relative to API_BASE_URL, e.g. `/api/login`.
- * @param body Request body, sent as JSON.
+ * @param path  Path relative to API_BASE_URL, e.g. `/api/login`.
+ * @param body  Request body, sent as JSON.
+ * @param token Bearer token, e.g. to attribute a created listing to a user.
  */
-export async function postJSON<T>(path: string, body: unknown): Promise<T> {
+export async function postJSON<T>(path: string, body: unknown, token?: string | null): Promise<T> {
   let response: Response
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
@@ -144,8 +157,42 @@ export async function postJSON<T>(path: string, body: unknown): Promise<T> {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         'ngrok-skip-browser-warning': 'true',
+        ...authHeaders(token),
       },
       body: JSON.stringify(body),
+    })
+  } catch {
+    throw new ApiError(
+      `Could not reach the API at ${API_BASE_URL}. Is the backend running?`,
+    )
+  }
+
+  if (!response.ok) throw new ApiError(await errorMessage(response), response.status)
+
+  try {
+    return (await response.json()) as T
+  } catch {
+    throw new ApiError('The API returned a response that was not valid JSON.')
+  }
+}
+
+/**
+ * DELETE `path` and parse the JSON response. Always needs a token - every
+ * route that accepts DELETE requires a signed-in owner.
+ *
+ * @param path  Path relative to API_BASE_URL, e.g. `/api/listings/5`.
+ * @param token Bearer token identifying who's asking.
+ */
+export async function deleteJSON<T>(path: string, token: string): Promise<T> {
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      method: 'DELETE',
+      headers: {
+        Accept: 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+        ...authHeaders(token),
+      },
     })
   } catch {
     throw new ApiError(

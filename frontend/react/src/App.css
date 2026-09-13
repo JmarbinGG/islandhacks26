@@ -390,6 +390,29 @@
   padding: 0.2rem 0.6rem;
 }
 
+/* ---- my listings ---- */
+
+.my-listing-card {
+  position: relative;
+}
+
+.my-listing-card__link {
+  display: flex;
+  flex-direction: column;
+  color: inherit;
+}
+
+.my-listing-card__delete {
+  margin: 0 18px 18px;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.my-listing-card__delete:hover {
+  background: var(--danger-tint);
+}
+
+
 /* ---- loading / empty / error states ---- */
 
 .state {
@@ -609,15 +632,30 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 32px;
-  max-width: 400px;
+  max-width: 480px;
   margin-inline: auto;
 }
 
 /* Inside the auth layout, .auth-layout's own centering handles
-   positioning - an auto margin here would fight it. */
+   positioning - an auto margin here would fight it. An explicit width is
+   needed too: as a flex item with flex: 0 0 auto, .auth-panel would otherwise
+   shrink-to-fit its content (mostly label text) instead of actually reaching
+   480px, the same sizing quirk .create-listing-panel works around below. */
 .auth-layout .auth-panel {
   margin-inline: 0;
   flex: 0 0 auto;
+  width: min(480px, 100%);
+}
+
+/* Create Listing reuses .auth-panel's styling but needs more breathing room -
+   it has twice as many fields plus a photo picker, and looks cramped at the
+   sign-in/sign-up width. `width: 100%` is needed alongside `max-width` here:
+   .auth-panel's auto inline margins make it a shrink-to-fit flex item, so
+   without an explicit width it sizes to its content (label text, mostly)
+   and never grows to fill the extra space `max-width` allows. */
+.create-listing-panel {
+  width: 100%;
+  max-width: 640px;
 }
 
 .auth-panel h1 {

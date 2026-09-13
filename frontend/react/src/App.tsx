@@ -6,6 +6,7 @@ import CreateListing from './pages/CreateListing'
 import Home from './pages/Home'
 import Landing from './pages/Landing'
 import ListingDetail from './pages/ListingDetail'
+import MyListings from './pages/MyListings'
 import NotFound from './pages/NotFound'
 import SearchResults from './pages/SearchResults'
 import SignIn from './pages/SignIn'
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/search" element={<SearchResults />} />
         <Route path="/categories" element={<Categories />} />
         <Route path="/listings/new" element={<CreateListing />} />
+        <Route path="/my-listings" element={<MyListings />} />
         <Route path="/listings/:id" element={<ListingDetail />} />
         <Route path="/about" element={<About />} />
         <Route path="/signin" element={<SignIn />} />

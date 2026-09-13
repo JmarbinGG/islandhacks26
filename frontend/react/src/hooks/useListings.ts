@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getListing, searchListings } from '../api/listings'
+import { getListing, getMyListings, searchListings } from '../api/listings'
 import type { Listing } from '../types'
 
 type AsyncState<T> = {
@@ -50,4 +50,12 @@ export function useListingSearch(query: string) {
 /** A single listing by id. */
 export function useListing(id: string): AsyncState<Listing> {
   return useFetch(`listing:${id}`, (signal) => getListing(id, signal))
+}
+
+/** The signed-in user's own listings. Resolves to `[]` without a token, so
+ * callers can pass through whatever `useAuth()` has without an extra check. */
+export function useMyListings(token: string | null): AsyncState<Listing[]> {
+  return useFetch(`mine:${token ?? ''}`, (signal) =>
+    token ? getMyListings(token, signal) : Promise.resolve([]),
+  )
 }

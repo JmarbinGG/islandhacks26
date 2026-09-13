@@ -1,13 +1,16 @@
 import type { Listing } from '../types'
-import { getJSON, postJSON } from './client'
+import { deleteJSON, getJSON, postJSON } from './client'
 
 /**
  * Backend routes (see backend/main.py):
  *
- *   GET  /api/search?query=<q>   full-text-ish search over name/category/location
- *   GET  /api/listings           every listing
- *   GET  /api/listings?id=<id>   a single listing (404 if missing)
- *   POST /api/upload             create a listing - only `name` is required
+ *   GET    /api/search?query=<q>   full-text-ish search over name/category/location
+ *   GET    /api/listings           every listing
+ *   GET    /api/listings?id=<id>   a single listing (404 if missing)
+ *   GET    /api/listings/mine      only the signed-in user's own listings (401 if signed out)
+ *   POST   /api/upload             create a listing - only `name` is required;
+ *                                  attributed to the signed-in user if a token is passed
+ *   DELETE /api/listings/<id>      remove a listing - 401 signed out, 403 if you don't own it
  *
  * Note the search param is `query`, not `q`, and a single listing is fetched
  * with an `id` query param rather than a path segment. Photo analysis lives
@@ -15,6 +18,7 @@ import { getJSON, postJSON } from './client'
  */
 const SEARCH_PATH = '/api/search'
 const LISTINGS_PATH = '/api/listings'
+const MY_LISTINGS_PATH = '/api/listings/mine'
 const UPLOAD_PATH = '/api/upload'
 
 /**
@@ -83,7 +87,23 @@ export type NewListing = {
   tags?: string
 }
 
-/** Create a listing. Returns the saved row, including its new id. */
-export function createListing(listing: NewListing): Promise<Listing> {
-  return postJSON<Listing>(UPLOAD_PATH, listing)
+/**
+ * Create a listing. Returns the saved row, including its new id.
+ *
+ * @param token When given, the backend attributes the listing to that user
+ *              (see /api/listings/mine) - omit it to post anonymously.
+ */
+export function createListing(listing: NewListing, token?: string | null): Promise<Listing> {
+  return postJSON<Listing>(UPLOAD_PATH, listing, token)
+}
+
+/** The signed-in user's own listings. Requires a token - there's no way to
+ * browse someone else's "mine" list. */
+export function getMyListings(token: string, signal?: AbortSignal): Promise<Listing[]> {
+  return getJSON<Listing[]>(MY_LISTINGS_PATH, undefined, signal, token)
+}
+
+/** Delete a listing you own. 403s if the token's user isn't its owner. */
+export function deleteListing(id: string | number, token: string): Promise<{ status: string }> {
+  return deleteJSON<{ status: string }>(`${LISTINGS_PATH}/${id}`, token)
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { analyzeImage, resolveImageUrl } from '../api/analyze'
 import { createListing } from '../api/listings'
@@ -6,7 +6,7 @@ import { useAuth } from '../auth/AuthContext'
 
 /** Simple form for POST /api/upload - only name and email are required. */
 export default function CreateListing() {
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const [name, setName] = useState('')
   const [category, setCategory] = useState('')
   const [location, setLocation] = useState('')
@@ -21,6 +21,10 @@ export default function CreateListing() {
   const [submitting, setSubmitting] = useState(false)
   const navigate = useNavigate()
 
+  // Tags each analyze call so a slower, older request can't win a race and
+  // overwrite a newer photo's result - see handlePhotoChange below.
+  const analyzeRequestId = useRef(0)
+
   // Local preview shows instantly; the photo is also sent to /api/analyze,
   // which saves it server-side and returns an AI-suggested name/category/
   // tags/quantity (see backend/ai/factory.py - the model behind this is
@@ -28,6 +32,8 @@ export default function CreateListing() {
   // already typed into are left alone.
   async function handlePhotoChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
+    const requestId = ++analyzeRequestId.current
+
     if (!file) {
       setImagePreview(null)
       setUploadedImageUrl(null)
@@ -41,17 +47,23 @@ export default function CreateListing() {
 
     try {
       const result = await analyzeImage(file)
+      // If another photo was picked while this one was still analyzing,
+      // its response arrived first and is what should stick - ignore this
+      // now-stale result instead of clobbering it (and posting the wrong
+      // photo with the listing).
+      if (requestId !== analyzeRequestId.current) return
       setUploadedImageUrl(resolveImageUrl(result.image_url))
       setName((prev) => prev || result.name)
       setCategory((prev) => prev || result.category)
       setQuantity((prev) => prev || result.quantity)
       setTags((prev) => prev || result.tags)
     } catch (err) {
+      if (requestId !== analyzeRequestId.current) return
       setAnalyzeError(
         err instanceof Error ? err.message : 'Could not auto-analyze this photo.',
       )
     } finally {
-      setAnalyzing(false)
+      if (requestId === analyzeRequestId.current) setAnalyzing(false)
     }
   }
 
@@ -72,7 +84,7 @@ export default function CreateListing() {
         mailtolink: email.trim()
           ? `mailto:${email.trim()}?subject=${encodeURIComponent(name)}`
           : undefined,
-      })
+      }, token)
       navigate(`/listings/${listing.id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
@@ -82,7 +94,7 @@ export default function CreateListing() {
   }
 
   return (
-    <section className="auth-panel">
+    <section className="auth-panel create-listing-panel">
       <h1>Create Listing</h1>
 
       <form onSubmit={handleSubmit}>

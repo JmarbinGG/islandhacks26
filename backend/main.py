@@ -4,7 +4,7 @@ from typing import Optional
 
 import bcrypt
 from dotenv import load_dotenv
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr
@@ -39,6 +39,7 @@ class Listing(Base):
     status = Column(String, default="available")
     category = Column(String)
     tags = Column(String)  # comma-separated keywords, e.g. "wood,lumber,pallets"
+    owner_id = Column(Integer, nullable=True)  # users.id, if posted while signed in
 
 
 class User(Base):
@@ -361,6 +362,9 @@ class ListingCreate(BaseModel):
 
 class ListingOut(ListingCreate):
     id: int
+    # Not on ListingCreate on purpose - a client can never set this directly,
+    # only the server derives it from the auth token on creation.
+    owner_id: Optional[int] = None
 
     class Config:
         from_attributes = True
@@ -401,6 +405,25 @@ def hash_password(password: str) -> str:
 
 def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode(), hashed.encode())
+
+
+def get_current_user_id(authorization: Optional[str] = Header(None)) -> Optional[int]:
+    """Looks up the bearer token against SESSIONS. Returns None if there's no
+    token or it's not recognized - used where being signed in is optional
+    (e.g. creating a listing anonymously is still allowed)."""
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    token = authorization.removeprefix("Bearer ")
+    return SESSIONS.get(token)
+
+
+def require_current_user_id(authorization: Optional[str] = Header(None)) -> int:
+    """Same lookup, but 401s if there's no valid session - for routes where
+    being signed in is mandatory (viewing/deleting your own listings)."""
+    user_id = get_current_user_id(authorization)
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Sign in required")
+    return user_id
 
 
 app = FastAPI()
@@ -535,15 +558,49 @@ def get_listings(id: Optional[int] = None):
         db.close()
 
 
-@app.post("/api/upload", response_model=ListingOut)
-def create_listing(listing: ListingCreate):
+@app.get("/api/listings/mine", response_model=list[ListingOut])
+def get_my_listings(user_id: int = Depends(require_current_user_id)):
+    """Only what the signed-in user posted - not a public browse endpoint,
+    so this requires a valid session rather than taking an owner_id param
+    (which would let anyone list anyone else's listings)."""
     db = SessionLocal()
     try:
-        new_listing = Listing(**listing.model_dump())
+        return db.query(Listing).filter(Listing.owner_id == user_id).all()
+    finally:
+        db.close()
+
+
+@app.post("/api/upload", response_model=ListingOut)
+def create_listing(
+    listing: ListingCreate,
+    owner_id: Optional[int] = Depends(get_current_user_id),
+):
+    # Signed-in posters get ownership recorded automatically; posting while
+    # signed out still works (owner_id just stays null), matching how the
+    # rest of the app already allows anonymous listings.
+    db = SessionLocal()
+    try:
+        new_listing = Listing(**listing.model_dump(), owner_id=owner_id)
         db.add(new_listing)
         db.commit()
         db.refresh(new_listing)
         return new_listing
+    finally:
+        db.close()
+
+
+@app.delete("/api/listings/{id}")
+def delete_listing(id: int, user_id: int = Depends(require_current_user_id)):
+    db = SessionLocal()
+    try:
+        listing = db.query(Listing).filter(Listing.id == id).first()
+        if not listing:
+            raise HTTPException(status_code=404, detail="Listing not found")
+        if listing.owner_id != user_id:
+            raise HTTPException(status_code=403, detail="You don't own this listing")
+        db.delete(listing)
+        db.commit()
+        return {"status": "deleted"}
     finally:
         db.close()
 
